@@ -1,9 +1,7 @@
 const nodemailer = require("nodemailer");
-const { vault } = require("./vault");
 
 const sendEmail = async (email, subject, html, text) => {
   try {
-    vault().then((data) => {
       nodemailer.createTransport({
         host: process.env.HOST,
         service: process.env.SERVICE,
@@ -20,7 +18,6 @@ const sendEmail = async (email, subject, html, text) => {
         html: html,
         text: text,
       });
-    })
   } catch (error) {
     console.log("email not sent");
     console.log(error);

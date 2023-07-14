@@ -2,10 +2,8 @@ const { validationResult } = require("express-validator");
 
 const User = require("../models/user");
 const Match = require("../models/match");
-const ChatRoom = require("../models/chatroom");
 
 const { logger } = require("../util/logger");
-const { vault } = require("../util/vault");
 
 const MATCHES_PER_PAGE = 3;
 
@@ -43,7 +41,6 @@ exports.getMatch = (req, res, next) => {
   let playerIn = false;
   let is_full = false;
   let is_over = false;
-  let userVote = "";
 
   if (req.user) {
     User.findById(req.user._id)
@@ -53,7 +50,6 @@ exports.getMatch = (req, res, next) => {
           userMatch = user.matchList.find((element) =>
             element.matchId.equals(matchId)
           );
-          userVote = userMatch.vote;
         }
       })
       .catch((err) => console.log(err));
@@ -80,23 +76,16 @@ exports.getMatch = (req, res, next) => {
         }
         const result = match.listPlayers.populate("players.userId");
       }
-      ChatRoom.findOne({ matchId: match._id })
-        .then((chatroom) => {
-          messages = chatroom.chat.message;
 
           res.render("app/match-detail", {
             m: match,
-            m_vote: userVote,
             user: nameUser,
-            chat: messages,
             pageTitle: match.title,
             path: "/matches",
             is_in: playerIn,
             is_full: is_full,
             isOver: is_over,
           });
-        })
-        .catch((err) => console.log(err));
     })
     .catch((err) => console.log(err));
 };
@@ -129,11 +118,11 @@ exports.postAddMatch = (req, res, next) => {
 
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    vault().then((data) => {
+
       logger(data.MONGODB_URI_LOGS).then((logger) => {
         logger.warn(logMessage + " Campi inseriti errati.")
       });
-    })
+
     return res.status(422).render("user/add-match", {
       pageTitle: "Add Match",
       path: "/add-match",
@@ -170,25 +159,16 @@ exports.postAddMatch = (req, res, next) => {
   match.save()
     .then(() => {
       User.findById(req.user._id).then((user) => {
-        user.matchList.push({ matchId: match._id, vote: "" });
+        user.matchList.push({ matchId: match._id });
         user.save();
       });
       match.addPlayer(hostUserId);
-      const chatroom = new ChatRoom({
-        matchId: match._id,
-        chat: {
-          message: [],
-        },
-      });
-      chatroom
-        .save()
-        .then(() => {})
-        .catch((err) => console.log(err));
-      vault().then((data) => {
+      
+
         logger(data.MONGODB_URI_LOGS).then((logger) => {
           logger.info(logMessage + " Match creato correttamente.")
         });
-      })
+
       res.redirect("/mymatches");
     })
     .catch((err) => console.log(err));
@@ -230,11 +210,10 @@ exports.postEditMatch = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const logErrorMessage = "Username: "+req.session.user.usrName+" - fallito edit match.";
-    vault().then((data) => {
+
       logger(data.MONGODB_URI_LOGS).then((logger) => {
         logger.error(logMessage + " " + logErrorMessage);
       });
-    })
     return res.status(422).render("user/edit-match", {
       pageTitle: "Edit Match",
       path: "/edit-match",
@@ -270,7 +249,7 @@ exports.postEditMatch = (req, res, next) => {
     })
     .then(() => {
       const logInfoMessage = "Username: "+req.session.user.usrName+" - edit match completato con successo."
-      vault().then((data) => {
+      ().then((data) => {
         logger(data.MONGODB_URI_LOGS).then((logger) => {
           logger.info(logMessage + " " + logInfoMessage)
         });
@@ -331,23 +310,21 @@ exports.postJoinMatch = (req, res, next) => {
     .then((match) => {
       if (match.currentPlayers != match.totalPlayers) {
         User.findById(req.user._id).then((user) => {
-          user.matchList.push({ matchId: match._id, vote: "" });
+          user.matchList.push({ matchId: match._id });
           user.save();
         });
         const logInfoMessage = "Username: "+req.session.user.usrName+" - aggiunto al match: "+match._id+".";
-        vault().then((data) => {
+
           logger(data.MONGODB_URI_LOGS).then((logger) => {
             logger.info(logMessage + " " + logInfoMessage);
           });
-        })
         return match.addPlayer(joiningUserId);
       } else {
         const logErrorMessage = "Username: "+req.session.user.usrName+" - ERRORE aggiunta al match: "+match._id+".";
-        vault().then((data) => {
+
           logger(data.MONGODB_URI_LOGS).then((logger) => {
             logger.error(logMessage + " " + logErrorMessage);
           });
-        })
       }
     })
     .then(() => {
@@ -355,11 +332,10 @@ exports.postJoinMatch = (req, res, next) => {
     })
     .catch((err) => {
       const logErrorMessage = "Username: "+req.session.user.usrName+" - ERRORE in JoinMatch: "+matchId+". "+err;
-      vault().then((data) => {
+
         logger(data.MONGODB_URI_LOGS).then((logger) => {
           logger.error(logMessage + " " + logErrorMessage);
         });
-      })
       console.log(err)
     });
 };
@@ -399,11 +375,10 @@ exports.postUnJoinMatch = (req, res, next) => {
   Match.findById(matchId)
     .then((match) => {
       const logInfoMessage = "Username: "+req.session.user.usrName+" - rimosso dal match: "+match._id+".";
-      vault().then((data) => {
+
         logger(data.MONGODB_URI_LOGS).then((logger) => {
           logger.info(logMessage + " " + logInfoMessage);
         });
-      })
       return match.RemovePlayer(unjoiningUserId);
     })
     .then(() => {
@@ -411,75 +386,12 @@ exports.postUnJoinMatch = (req, res, next) => {
     })
     .catch((err) => {
       const logErrorMessage = "Username: "+req.session.user.usrName+" - ERRORE in UnjoinMatch: "+matchId+". "+err;
-      vault().then((data) => {
+
         logger(data.MONGODB_URI_LOGS).then((logger) => {
           logger.error(logMessage + " " + logErrorMessage);
         });
-      })
       console.log(err)
     });
-};
-
-exports.postVoteMatch = (req, res, next) => {
-  const matchId = req.body.matchId;
-  const updatedVote = req.body.newVote;
-  const oldVote = req.body.oldVote;
-
-  const remoteAddress = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
-  const logMessage ="'" + req.method + "' request to " + "'" + req.url + "' from "+ req.user.usrName +" (IP: " +  remoteAddress + ")"
-
-  Match.findById(matchId)
-    .then((match) => {
-      if (req.body.op == "add") {
-        vault().then((data) => {
-          logger(data.MONGODB_URI_LOGS).then((logger) => {
-            logger.info(logMessage + " L'utente ha votato '" + updatedVote + "' la partita '" + match.title + "'")
-          });
-        })
-        match.votes[updatedVote] = match.votes[updatedVote] + 1;
-        if (oldVote != "noneVote") {
-          match.votes[oldVote] = match.votes[oldVote] - 1;
-        }
-        User.findById(req.user._id)
-          .then((user) => {
-            const voteIndex = user.matchList.findIndex((element) =>
-              element.matchId.equals(matchId)
-            );
-            user.matchList[voteIndex].vote = "" + updatedVote + "";
-            user.markModified("matchList");
-            user
-              .save()
-              .then()
-              .catch((err) => console.log(err));
-          })
-          .catch((err) => console.log(err));
-      } else {
-        vault().then((data) => {
-          logger(data.MONGODB_URI_LOGS).then((logger) => {
-            logger.info(logMessage + " L'utente ha rimosso il voto alla partita '" + match.title + "'")
-          });
-        })
-        match.votes[updatedVote] = match.votes[updatedVote] - 1;
-        User.findById(req.user._id)
-          .then((user) => {
-            const voteIndex = user.matchList.findIndex((element) =>
-              element.matchId.equals(matchId)
-            );
-            user.matchList[voteIndex].vote = "";
-            user.markModified("matchList");
-            user
-              .save()
-              .then()
-              .catch((err) => console.log(err));
-          })
-          .catch((err) => console.log(err));
-      }
-      return match.save();
-    })
-    .then(() => {
-      res.redirect("/mymatches");
-    })
-    .catch((err) => console.log(err));
 };
 
 exports.postDeleteMatch = (req, res, next) => {
@@ -489,11 +401,10 @@ exports.postDeleteMatch = (req, res, next) => {
   Match.findByIdAndRemove(matchId)
     .then(() => {
       const logWarnMessage = "Username: "+req.session.user.usrName+" - Match eliminato con successo.";
-      vault().then((data) => {
         logger(data.MONGODB_URI_LOGS).then((logger) => {
           logger.warn(logMessage + " " + logWarnMessage);
         });
-      })
+
       res.redirect("/mymatches");
 
     })

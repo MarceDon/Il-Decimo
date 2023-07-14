@@ -3,8 +3,6 @@ const { body } = require('express-validator');
 const { Promise, Error } = require('sequelize');
 
 const userController = require('../controllers/user');
-const accessController = require('../controllers/accessControl');
-
 const User = require('../models/user');
 
 const isAuth = require('../middleware/is-auth');
@@ -16,14 +14,14 @@ const router = express.Router();
 const passErr = 'Perfavore inserisci una password valida! Deve contenere: almeno 8 caratteri,'+
                 ' almeno 1 lettera minuscola, almeno 1 lettera maiuscola, almeno 1 numero e almeno 1 simbolo';
 
-router.get('/', userController.getIndex);
+router.get('/', function(req, res){userController.getIndex});
 
-router.get('/terms', userController.getTerms);
+router.get('/terms', function(req, res){userController.getTerms});
 
-router.get('/myprofile', isAuth, isEnabled, isVerified, accessController.grantIfOwnProfile("readOwn", "profile"), userController.getUserProfile);
+router.get('/myprofile', isAuth, isEnabled, isVerified, function(req, res){userController.getUserProfile});
 
-router.get('/editUser/:username', isAuth, isEnabled, isVerified, accessController.grantIfOwnProfile("updateOwn", "profile"), userController.getEditUser);
-router.post('/editUser', isAuth, isEnabled, isVerified, accessController.grantIfOwnProfile("updateOwn", "profile"),
+router.get('/editUser/:username', isAuth, isEnabled, isVerified, function(req, res){userController.getEditUser});
+router.post('/editUser', isAuth, isEnabled, isVerified,
   [
     body('usrName', 'Perfavore inserisci un Username con almeno 6 caratteri, composto solo da lettere o numeri!')
       .isLength({ min: 4, max: 60 })
@@ -65,11 +63,11 @@ router.post('/editUser', isAuth, isEnabled, isVerified, accessController.grantIf
     body('squad', 'Inserisci una squadra valida, o non inserirla').trim(),
     body('bio', 'Inserisci una bio valita, o non inserirla').trim(),
   ], 
-  userController.postEditUser
+  function(req, res){userController.postEditUser}
 );
 
-router.get('/myprofile/editpass', isAuth, isEnabled, isVerified, accessController.grantIfOwnProfile("updateOwn", "password"), userController.getEditPassword);
-router.post('/myprofile/editpass', isAuth, isEnabled, isVerified, accessController.grantIfOwnProfile("updateOwn", "password"),
+router.get('/myprofile/editpass', isAuth, isEnabled, isVerified, function(req, res){userController.getEditPassword});
+router.post('/myprofile/editpass', isAuth, isEnabled, isVerified,
   [
     body('oldPassword')
       .trim()
@@ -108,7 +106,7 @@ router.post('/myprofile/editpass', isAuth, isEnabled, isVerified, accessControll
       })
       .escape(),
   ], 
-  userController.postEditPassword
+  function(req, res){userController.postEditPassword}
 );
 
 module.exports = router; 

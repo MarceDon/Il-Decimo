@@ -9,7 +9,6 @@ const passport = require("passport");
 const toobusy = require('toobusy-js');
 const hpp = require('hpp');
 const helmet = require('helmet')
-const csp = require('helmet-csp');
 
 require("dotenv").config();
 
@@ -18,9 +17,6 @@ const { logger } = require("./util/logger");
 const errorController = require("./controllers/error");
 
 const User = require("./models/user");
-const ChatRoom = require("./models/chatroom");
-
-const { vault } = require("./util/vault");
 
 const app = express();
 const csrfProtection = csrf();
@@ -30,12 +26,10 @@ const matchRoutes = require("./routes/match");
 const authRoutes = require("./routes/auth");
 const federateRoutes = require("./routes/federate");
 const adminRoutes = require("./routes/admin");
-const { raw } = require("body-parser");
 
 app.set("view engine", "ejs");
 app.set("views", "views");
 
-vault().then((data) => {
   const store = new MongoDBStore({
     uri: data.MONGODB_URI,
     collection: "sessions",
@@ -44,17 +38,7 @@ vault().then((data) => {
   app.use(helmet.hsts());
   app.use(helmet.noSniff());
   app.use(helmet.hidePoweredBy());
-  app.use(csp({
-    directives: {
-        defaultSrc: ["'self'"],  // default value for all directives that are absent
-        scriptSrc: ["'self'", 'unpkg.com'],   // helps prevent XSS attacks
-        connectSrc: ["'self'", 'assets1.lottiefiles.com'],
-        frameAncestors: ["'none'"],  // helps prevent Clickjacking attacks
-        imgSrc: ["'self'"],
-        fontSrc: ["'self'", 'fonts.gstatic.com', 'cdnjs.cloudflare.com'],
-        styleSrc: ["'self'", 'fonts.googleapis.com', 'cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/'],
-     }
- }))
+
   app.use(hpp())
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use(express.json());
@@ -198,45 +182,9 @@ vault().then((data) => {
     .connect(data.MONGODB_URI, { useNewUrlParser: true })
     .then(() => {
       const port = process.env.PORT || 5000;
-      const server = app.listen(port);
-
-      const io = require("socket.io")(server);
+      app.listen(port);
       console.log("Listening on port ", port);
-
-      io.on("connection", (socket) => {
-        socket.on("message", (message) => {
-          socket.to(message.room).emit("message", message);
-
-          ChatRoom.findOne({ matchId: message.room })
-            .then((room) => {
-              room.addMessage(message);
-            })
-            .catch((err) => console.log(err));
-        });
-
-        socket.on("create or join", (room) => {
-          io.in(room)
-            .fetchSockets()
-            .then((sockets) => {
-              numClients = sockets.length + 1;
-
-              if (numClients == 1) {
-                socket.join(room);
-                socket.emit("created", room); 
-              } else {
-                io.to(room).emit("remotePeerJoining", room);
-                socket.join(room);
-                socket.to(room).emit(
-                  "broadcast: joined",
-                  `client ${socket.id} joined room ${room}` 
-                );
-                socket.emit("joined", room);
-              }
-            });
-        });
-      });
     })
     .catch((err) => {
       console.log(err);
     });
-});

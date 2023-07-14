@@ -1,5 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const data = require('../util/data');
 var generatePass = require('password-generator');
 var passport = require('passport');
 var GoogleStrategy = require('passport-google-oidc');
@@ -9,7 +10,6 @@ const router = express.Router();
 const FederateUser = require('../models/federateUser');
 const User = require('../models/user');
 const Session = require('../models/session');
-const { vault } = require('../util/vault')
 const { logger } = require('../util/logger');
 
 router.get('/login/federated/google', passport.authenticate('google', {
@@ -26,7 +26,6 @@ router.get('/oauth2/redirect/google', passport.authenticate('google', {
   })
 );
 
-vault().then((data) => {
   passport.use(
     new GoogleStrategy(
       {
@@ -65,11 +64,10 @@ vault().then((data) => {
                     return cb(null, user)
                   })
                   const logInfoMessage = "Utente: "+user._id+" creato con successo dal profilo Google!";
-                  vault().then((data) => {
+                  
                     logger(data.MONGODB_URI_LOGS).then((logger) => {
                       logger.info(logInfoMessage)
                     });
-                  })
                 })
                 .catch((err) => {
                   return cb(err)
@@ -80,19 +78,17 @@ vault().then((data) => {
                 Session.find({'session.user.usrName': user.usrName}).then((activeSessions) => {
                   if (activeSessions.length > 2) {
                     const logWarnMessage = "LOGIN FALLITO - Utente: "+user.usrName+" ha troppe sessioni attive!";
-                    vault().then((data) => {
+                    
                       logger(data.MONGODB_URI_LOGS).then((logger) => {
                         logger.warn(logWarnMessage)
                       });
-                    })
                     return cb(null, null)
                   } else {
                     const logInfoMessage = "Utente: "+user.usrName+" - LOGIN EFFETTUATO con Google";
-                    vault().then((data) => {
+                    
                       logger(data.MONGODB_URI_LOGS).then((logger) => {
                         logger.info(logInfoMessage);
                       });
-                    })
                     return cb(null, user)
                   }
                 })
@@ -105,6 +101,5 @@ vault().then((data) => {
       },
     )
   );
-})
 
 module.exports = router;

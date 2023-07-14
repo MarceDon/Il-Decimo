@@ -12,7 +12,6 @@ const UserOTPVerification = require("../models/userOTPVerification");
 const sendEmail = require("../util/email");
 const { OTPVerification } = require('../middleware/send-OTP-verification');
 const { logger } = require("../util/logger");
-const { vault } = require("../util/vault");
 
 const maxNumberOfFailedLogins = 10;
 
@@ -42,11 +41,11 @@ exports.postLogin = (req, res, next) => {
   if (!errors.isEmpty()) {
     const logWarnMessage = "Username: " + usrName + " - username o password invalidi."
 
-    vault().then((data) => {
+
       logger(data.MONGODB_URI_LOGS).then((logger) => {
         logger.warn(logMessage + " " + logWarnMessage)
       });
-    })
+
 
     return res.status(422).render("auth/login", {
       path: "/login",
@@ -64,11 +63,9 @@ exports.postLogin = (req, res, next) => {
     .then((user) => {
       if (!user) {
         const logWarnMessage = "Username: " + usrName + " - username non esistente."
-        vault().then((data) => {
-          logger(data.MONGODB_URI_LOGS).then((logger) => {
+                 logger(data.MONGODB_URI_LOGS).then((logger) => {
             logger.warn(logMessage + " " + logWarnMessage)
           });
-        })
         return res.status(422).render("auth/login", {
           path: "/login",
           pageTitle: "Login",
@@ -84,11 +81,9 @@ exports.postLogin = (req, res, next) => {
         if (!!blackList) {
           if (blackList.attempts >= maxNumberOfFailedLogins) {
             const logWarnMessage = "Username: " + usrName + " - troppi tentativi di login."
-            vault().then((data) => {
-              logger(data.MONGODB_URI_LOGS).then((logger) => {
+                         logger(data.MONGODB_URI_LOGS).then((logger) => {
                 logger.warn(logMessage + " " + logWarnMessage)
               });
-            })
             return res.status(429).render("auth/login", {
               path: "/login",
               pageTitle: "Login",
@@ -108,11 +103,9 @@ exports.postLogin = (req, res, next) => {
               if (passOK && activeSessions.length < 2) {
                 if (!user.verified) {
                   const logWarnMessage = "Username: " + usrName + " - account non verificato."
-                  vault().then((data) => {
-                    logger(data.MONGODB_URI_LOGS).then((logger) => {
+                                     logger(data.MONGODB_URI_LOGS).then((logger) => {
                       logger.warn(logMessage + " " + logWarnMessage)
                     });
-                  })
                   return res.status(422).render("auth/login", {
                     path: "/login",
                     pageTitle: "Login",
@@ -165,11 +158,9 @@ exports.postLogin = (req, res, next) => {
               });
               if (activeSessions.length >= 2) {
                 const logWarnMessage = "Username: " + usrName + " - l'account ha già due sessioni attive."
-                vault().then((data) => {
-                  logger(data.MONGODB_URI_LOGS).then((logger) => {
+                                 logger(data.MONGODB_URI_LOGS).then((logger) => {
                     logger.warn(logMessage + " " + logWarnMessage)
                   });
-                })
                 errMsg = "Hai già due sessioni attive!";
               }
               return res.status(422).render("auth/login", {
@@ -186,11 +177,9 @@ exports.postLogin = (req, res, next) => {
           })
           .catch((err) => {
             console.log(err);
-            vault().then((data) => {
-              logger(data.MONGODB_URI_LOGS).then((logger) => {
+                         logger(data.MONGODB_URI_LOGS).then((logger) => {
                 logger.error(logMessage + " " + err)
               });
-            })
             
             res.redirect("/login");
           });
@@ -198,11 +187,9 @@ exports.postLogin = (req, res, next) => {
     })
     .catch((err) => {
       console.log(err);
-      vault().then((data) => {
-        logger(data.MONGODB_URI_LOGS).then((logger) => {
+             logger(data.MONGODB_URI_LOGS).then((logger) => {
           logger.error(logMessage + " " + err)
         });
-      })
     });
 };
 
@@ -220,11 +207,10 @@ exports.postCheckOTP = (req, res, next) => {
           bcrypt.compare(otp, userOtp.otp).then((otpOK) => {
             if (otpOK) {
               const logInfoMessage = "Username: " + user.usrName + " - OTP inserito correttamente."
-              vault().then((data) => {
-                logger(data.MONGODB_URI_LOGS).then((logger) => {
+                             logger(data.MONGODB_URI_LOGS).then((logger) => {
                   logger.info(logMessage + " " + logInfoMessage)
                 });
-              })
+
               
               UserOTPVerification.deleteMany({userId: user._id});
               req.session.isLoggedIn = true;
@@ -240,10 +226,9 @@ exports.postCheckOTP = (req, res, next) => {
               });
             } else {
               const logInfoMessage = "Username: " + user.usrName + " - OTP inserito non valido."
-              vault().then((data) => {
-                logger(data.MONGODB_URI_LOGS).then((logger) => {
+                  logger(data.MONGODB_URI_LOGS).then((logger) => {
                   logger.info(logMessage + " " + logInfoMessage)
-                });
+
               })
               
               return res.render("auth/checkOTP", {
@@ -260,22 +245,20 @@ exports.postCheckOTP = (req, res, next) => {
             }
           });
         }).catch((error)=>{
-          vault().then((data) => {
-            logger(data.MONGODB_URI_LOGS).then((logger) => {
+                     logger(data.MONGODB_URI_LOGS).then((logger) => {
               logger.error(logMessage + " " + error)
             });
           })
           
           console.log(error)
-        })
+
       }
     })
     .catch((error) => {
-      vault().then((data) => {
-        logger(data.MONGODB_URI_LOGS).then((logger) => {
+             logger(data.MONGODB_URI_LOGS).then((logger) => {
           logger.error(logMessage + " " + error)
         });
-      })
+
       
       console.log(error)
     })
@@ -312,11 +295,10 @@ exports.postSignup = (req, res, next) => {
   if (!errors.isEmpty()) {
     const logWarnMessage = " Registrazione fallita per campi errati."
 
-    vault().then((data) => {
-      logger(data.MONGODB_URI_LOGS).then((logger) => {
+         logger(data.MONGODB_URI_LOGS).then((logger) => {
         logger.warn(logMessage + " " + logWarnMessage)
       });
-    })
+
     
     return res.status(422).render("auth/signup", {
       path: "/signup",
@@ -352,8 +334,7 @@ exports.postSignup = (req, res, next) => {
         expireAt: Date.now() + 86400000,
       });
 
-      vault().then((data) => {
-        const accessToken = jwt.sign(
+             const accessToken = jwt.sign(
           { userId: user._id },
           data.JWT_SECRET,
           { expiresIn: "1d" }
@@ -376,7 +357,7 @@ exports.postSignup = (req, res, next) => {
           "<h2>Clicca il link per confermare l'email:</h2><a href='" + message +
           "' target='_blank'>" + message + "</a>";
         sendEmail(user.email, "Verifica l'email!", html, message);
-      })
+
     })
     .then(() => {
       res.render("auth/login", {
@@ -396,11 +377,10 @@ exports.getVerify = (req, res, next) => {
   User.findOne({ usrName: req.params.username }).then((user) => {
     if (!user) {
       const logErrorMessage = " Fallito verifica email per user non trovato."
-      vault().then((data) => {
-        logger(data.MONGODB_URI_LOGS).then((logger) => {
+             logger(data.MONGODB_URI_LOGS).then((logger) => {
           logger.error(logMessage + " " + logErrorMessage)
         });
-      })
+
 
       
       return res.status(400).render("auth/emailVerification", {
@@ -416,11 +396,10 @@ exports.getVerify = (req, res, next) => {
       if (!token) {
         const logErrorMessage = "Username: " + req.params.username  + " - fallito verifica email per token errato."
 
-        vault().then((data) => {
-          logger(data.MONGODB_URI_LOGS).then((logger) => {
+                 logger(data.MONGODB_URI_LOGS).then((logger) => {
             logger.error(logMessage + " " + logErrorMessage)
           });
-        })
+
         
         return res.status(400).render("auth/emailVerification", {
           path: "/emailVerification",
@@ -433,11 +412,9 @@ exports.getVerify = (req, res, next) => {
       user.save();
       token.remove();
       const logWarnMessage = "Username: " + req.params.username  + " - verifica email avvenuta con successo."
-      vault().then((data) => {
-        logger(data.MONGODB_URI_LOGS).then((logger) => {
+             logger(data.MONGODB_URI_LOGS).then((logger) => {
           logger.warn(logMessage + " " + logWarnMessage)
         });
-      })
       
       return res.status(400).render("auth/emailVerification", {
         path: "/emailVerification",
@@ -449,11 +426,9 @@ exports.getVerify = (req, res, next) => {
 };
 
 exports.postLogout = (req, res, next) => {
-  vault().then((data) => {
-    logger(data.MONGODB_URI_LOGS).then((logger) => {
+     logger(data.MONGODB_URI_LOGS).then((logger) => {
       logger.info("L'utente " + req.user.usrName + " ha effettuato il log-out.")
     });
-  })
   
   req.session.destroy((err) => {
     res.redirect("/");

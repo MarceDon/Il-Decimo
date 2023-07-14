@@ -8,7 +8,6 @@ const User = require('../models/user');
 
 const isAuth = require('../middleware/is-auth');
 const isLog = require('../middleware/is-logged');
-const isEnabled = require('../middleware/is-enabled');
 const { rateLimit } = require('../middleware/login-rate-limit');
 
 const router = express.Router();
@@ -16,14 +15,14 @@ const router = express.Router();
 const passErr = 'Perfavore inserisci una password valida! Deve contenere: almeno 8 caratteri,'+
                 ' almeno 1 lettera minuscola, almeno 1 lettera maiuscola, almeno 1 numero e almeno 1 simbolo';
 
-router.get('/login', isLog, authController.getLogin)
+router.get('/login', isLog, function(req, res){authController.getLogin})
 router.post('/login', rateLimit, isLog,
   [
     body('usrName').isLength({ min: 4, max: 60 }).isAlphanumeric().trim().escape(),
     body('password').isLength({ min: 8, max: 50 }).trim().escape(),
     body('_csrf').isString().trim().escape(),
   ],
-  authController.postLogin
+  function(req, res){authController.postLogin}
 );
 
 router.post('/checkOTP', rateLimit, isLog, 
@@ -32,9 +31,9 @@ router.post('/checkOTP', rateLimit, isLog,
     body('otp').isAlphanumeric().trim().escape(),
     body('email').isEmail().normalizeEmail().escape(),
   ]
-,authController.postCheckOTP);
+,function(req, res){authController.postCheckOTP});
 
-router.get('/signup', isLog, authController.getSignup);
+router.get('/signup', isLog, function(req, res){authController.getSignup});
 router.post('/signup', isLog,
   [
     body('nome', 'Perfavore inserisci il tuo Nome correttamente!')
@@ -104,16 +103,16 @@ router.post('/signup', isLog,
         return true
       })
   ],
-  authController.postSignup
+  function(req, res){authController.postSignup}
 );
 
-router.get("/verify/:username/:token", isLog, authController.getVerify);
+router.get("/verify/:username/:token", isLog, function(req, res){authController.getVerify});
 
 router.post('/logout', isAuth, 
   body('_csrf')
   .isString()
   .trim()
   .escape(), 
-authController.postLogout);
+function(req, res){authController.postLogout});
 
 module.exports = router;

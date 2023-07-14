@@ -2,7 +2,6 @@ const Match = require("../models/match");
 const User = require("../models/user");
 
 const { logger } = require("../util/logger");
-const { vault } = require("../util/vault");
 
 const ELEM_PER_PAGE = 10;
 
@@ -98,11 +97,10 @@ exports.postEditRole = (req, res, next) => {
     })
     .then(() => {
       const logInfoMessage = "Username: "+req.session.user.usrName+" - modifica al ruolo di: "+userName;
-      vault().then((data) => {
+
         logger(data.MONGODB_URI_LOGS).then((logger) => {
           logger.info(logMessage + " " + logInfoMessage)
         });
-      })
       res.redirect("/utente/"+userName);
     })
     .catch((err) => console.log(err));
@@ -119,11 +117,10 @@ exports.postDisableUser = (req, res, next) => {
     })
     .then(() => {
       const logInfoMessage = "Username: " + req.user.usrName + " ha disattivato l'utente: "+ userName;
-      vault().then((data) => {
+
         logger(data.MONGODB_URI_LOGS).then((logger) => {
           logger.info(logMessage + " " + logInfoMessage)
         });
-      })
       res.redirect("/listUser");
     })
     .catch((err) => console.log(err));
@@ -140,11 +137,11 @@ exports.postEnableUser = (req, res, next) => {
     })
     .then(() => {
       const logInfoMessage = "Username: " + req.user.usrName + " ha disattivato l'utente: "+ userName;
-      vault().then((data) => {
+
         logger(data.MONGODB_URI_LOGS).then((logger) => {
           logger.info(logMessage + " " + logInfoMessage)
         });
-      })
+
       res.redirect("/listUser");
     })
     .catch((err) => console.log(err));

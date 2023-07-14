@@ -6,7 +6,6 @@ const LogSession = require("../models/logSession");
 const FederateUser = require('../models/federateUser');
 
 const { logger } = require("../util/logger");
-const { vault } = require("../util/vault");
 
 exports.getIndex = (req, res, next) => {
   let message = "";
@@ -97,11 +96,10 @@ exports.postEditUser = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const logErrorMessage = "Username: "+req.session.user.usrName+" - fallita modifica utente: "+userId;
-    vault().then((data) => {
+
       logger(data.MONGODB_URI_LOGS).then((logger) => {
         logger.error(logMessage + " " + logErrorMessage);
       });
-    })
     return res.status(422).render("user/editUser", {
       pageTitle: "Edit User",
       path: "/editUser/:username",
@@ -143,7 +141,7 @@ exports.postEditUser = (req, res, next) => {
     })
     .then(() => {
       const logInfoMessage = "Username: "+req.session.user.usrName+" - edit dell'utente: "+userId+", completato con successo."
-      vault().then((data) => {
+      ().then((data) => {
         logger(data.MONGODB_URI_LOGS).then((logger) => {
           logger.info(logMessage + " " + logInfoMessage)
         });
@@ -195,11 +193,10 @@ exports.postEditPassword = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const logWarnMessage = "Username: "+username+" - errore modifica password.";
-    vault().then((data) => {
+
       logger(data.MONGODB_URI_LOGS).then((logger) => {
         logger.warn(logMessage + " " + logWarnMessage)
       });
-    })
     return res.status(422).render("user/editPass", {
       pageTitle: "Edit Password",
       path: "/myprofile/editpass",
@@ -269,20 +266,16 @@ exports.postEditPassword = (req, res, next) => {
       })
       .catch((err) => {
         console.log(err);
-        vault().then((data) => {
           logger(data.MONGODB_URI_LOGS).then((logger) => {
             logger.error(logMessage + " " + err)
           });
-        })
       })
     });
   })
   .catch((err) => {
     console.log(err);
-    vault().then((data) => {
       logger(data.MONGODB_URI_LOGS).then((logger) => {
         logger.error(logMessage + " " + err)
       });
-    })
   });
 }

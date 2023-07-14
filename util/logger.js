@@ -1,8 +1,5 @@
 const { createLogger, format, transports } = require("winston");
 const path = require("path");
-//require("winston-mongodb");
-
-const { vault } = require("./vault");
 
 const logLevels = {
   fatal: 0,
@@ -19,35 +16,6 @@ const logger = createLogger({
   levels: logLevels,
   format: format.combine(format.timestamp(), format.json()),
   transports: [
-    // new transports.MongoDB({
-    //   db: dbString,
-    //   options: {
-    //     useUnifiedTopology: true,
-    //   },
-    //   collection: "info_logs",
-    //   expireAfterSeconds: 15778800, //expire after 6 months
-    //   format: format.combine(format.timestamp(), format.json()),
-    // }),
-    // new transports.MongoDB({
-    //   level: "warn",
-    //   db: dbString,
-    //   options: {
-    //     useUnifiedTopology: true,
-    //   },
-    //   collection: "warn_logs",
-    //   expireAfterSeconds: 15778800,
-    //   format: format.combine(format.timestamp(), format.json()),
-    // }),
-    // new transports.MongoDB({
-    //   level: "error",
-    //   db: dbString,
-    //   options: {
-    //     useUnifiedTopology: true,
-    //   },
-    //   collection: "error_logs",
-    //   expireAfterSeconds: 15778800,
-    //   format: format.combine(format.timestamp(), format.json()),
-    // }),
     new transports.File({
       filename: path.join(__dirname, "..", "logs", "info.log"),
       level: "info",

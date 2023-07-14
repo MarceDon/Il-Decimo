@@ -62,7 +62,6 @@ const sessionSchema = new Schema({
           type: Schema.Types.ObjectId,
           ref: "Match",
         },
-        vote: {type: String},
       },
     },
     ipAddress: {type: String}

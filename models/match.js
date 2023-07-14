@@ -46,13 +46,6 @@ const matchSchema = new Schema({
       }
     ]
   },
-  votes: {
-    angry: { type: Number, default: 0, required: false},
-    sad: { type: Number, default: 0, required: false},
-    ok: { type: Number, default: 0, required: false},
-    good: { type: Number, default: 0, required: false},
-    happy: { type: Number, default: 0, required: false},
-  },
   hostUserId: {
     type: Schema.Types.ObjectId,
     ref: 'User',

@@ -1,20 +1,18 @@
 {
-  "name": "Il-Decimo",
+  "name": "Il-Decimo(fork)",
   "version": "1.0.0",
   "description": "App per l'organizzazione di partite di calcio",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon app.js",
     "start-server": "node app.js"
   },
-  "author": "Marcello Donisi - Claudio Lista - Ciro Marrazzo",
-  "license": "",
+  "author": "Marcello Donisi",
+  "license": "UNLICENSED",
   "devDependencies": {
-    "nodemon": "^2.0.20"
+    "nodemon": "^3.0.1"
   },
   "dependencies": {
-    "accesscontrol": "^2.2.1",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.3",
     "connect-mongodb-session": "^3.1.1",
@@ -27,21 +25,17 @@
     "express-session": "^1.17.3",
     "express-validator": "^6.14.2",
     "helmet": "^6.0.1",
-    "helmet-csp": "^3.4.0",
     "hpp": "^0.2.3",
     "jsonwebtoken": "^9.0.0",
     "mongodb": "^3.1.6",
     "mongoose": "^5.2.17",
-    "node-vault": "^0.9.22",
-    "nodemailer": "^6.9.0",
+    "nodemailer": "^6.9.3",
     "passport": "^0.6.0",
     "passport-facebook": "^3.0.0",
     "passport-google-oidc": "^0.1.0",
     "password-generator": "^2.3.2",
-    "sequelize": "^5.0.0-beta.11",
-    "socket.io": "^4.5.4",
+    "sequelize": "^6.32.1",
     "toobusy-js": "^0.5.1",
-    "winston": "^3.8.2",
-    "winston-mongodb": "^5.1.1"
+    "winston": "^3.8.2"
   }
 }

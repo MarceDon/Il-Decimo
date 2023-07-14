@@ -50,7 +50,6 @@ const userSchema = new Schema({
       type: Schema.Types.ObjectId,
       ref: "Match",
     },
-    vote: {type: String},
   },
 });
 
